@@ -1,8 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Download, Menu, X } from 'lucide-react';
+import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server } from 'lucide-react';
+
+const formatStarCount = (count: number): string => {
+  if (count >= 1000) {
+    // Round down to nearest 100 before formatting
+    const roundedCount = Math.floor(count / 100) * 100;
+    return `${(roundedCount / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  }
+  return count.toString();
+};
 
 const Root = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [lumeStars, setLumeStars] = useState<number | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check localStorage on initial render
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
+
+  // Toggle theme
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => {
+      const newTheme = !prev;
+      // Save to localStorage
+      localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+      // Toggle class on html element
+      document.documentElement.classList.toggle('dark');
+      return newTheme;
+    });
+  };
+
+  // Set initial theme class on mount
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  // Fetch GitHub stars
+  useEffect(() => {
+    const fetchStars = async () => {
+      try {
+        const response = await fetch('https://api.github.com/repos/trycua/lume');
+        const data = await response.json();
+        setLumeStars(data.stargazers_count);
+      } catch (error) {
+        console.error('Error fetching GitHub stars:', error);
+      }
+    };
+    fetchStars();
+  }, []);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -18,19 +68,23 @@ const Root = () => {
   }, [isMenuOpen]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#171717]' : 'bg-white'} transition-[background-color,border-color] duration-200 ease-in-out`}>
       {/* Header */}
-      <nav className="p-4 relative">
+      <nav className={`fixed top-0 left-0 right-0 p-4 z-50 ${isDarkMode ? 'bg-[#171717]' : 'bg-white'} transition-[background-color,border-color] duration-200 ease-in-out`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
-            <a href="/" className="text-black hover:text-gray-600">
-              <img src="/logo.svg" alt="TryCua Logo" className="h-10 w-10" />
+            <a href="/" className={`${isDarkMode ? 'text-white hover:text-gray-200' : 'text-black hover:text-gray-600'}`}>
+              <img 
+                src={isDarkMode ? "/logo-white.svg" : "/logo-black.svg"} 
+                alt="TryCua Logo" 
+                className="h-10 w-10" 
+              />
             </a>
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4 ml-4">
-              <a href="https://discord.com/invite/5ngXY2Wn" className="text-gray-600 hover:text-gray-900">Discord</a>
-              <a href="https://github.com/trycua" className="text-gray-600 hover:text-gray-900">GitHub</a>
-              <a href="https://github.com/orgs/trycua/packages" className="text-gray-600 hover:text-gray-900">Images</a>
+              <a href="https://discord.com/invite/5ngXY2Wn" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Discord</a>
+              <a href="https://github.com/trycua" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>GitHub</a>
+              <a href="https://github.com/orgs/trycua/packages" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Images</a>
             </div>
           </div>
           
@@ -40,24 +94,87 @@ const Root = () => {
               e.stopPropagation();
               setIsMenuOpen(!isMenuOpen);
             }}
-            className="md:hidden text-gray-600 hover:text-gray-900"
+            className={`md:hidden ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
             data-menu-container
           >
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
+
+          {/* Theme Switch */}
+          <button
+            className={`hidden md:flex items-center gap-2 fixed right-36 top-4 py-1 px-3 rounded-full border transition-colors ${
+              isDarkMode 
+                ? 'text-gray-300 hover:text-white bg-[#171717]/80 backdrop-blur-sm border-neutral-800 hover:border-neutral-700' 
+                : 'text-gray-600 hover:text-gray-900 bg-white/80 backdrop-blur-sm border-gray-200 hover:border-gray-300'
+            }`}
+            onClick={toggleTheme}
+          >
+            {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
+            <span>{isDarkMode ? 'Owl mode' : 'Eagle mode'}</span>
+          </button>
+
+          {/* GitHub Stars Counter */}
+          {lumeStars !== null && (
+            <a 
+              href="https://github.com/trycua/lume" 
+              className={`hidden md:flex items-center gap-2 fixed right-8 top-4 py-1 px-3 rounded-full border transition-colors ${
+                isDarkMode 
+                  ? 'text-gray-300 hover:text-white bg-[#171717]/80 backdrop-blur-sm border-neutral-800 hover:border-neutral-700' 
+                  : 'text-gray-600 hover:text-gray-900 bg-white/80 backdrop-blur-sm border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <Github size={16} />
+              <Star size={16} className="fill-current" />
+              <span>{formatStarCount(lumeStars)}</span>
+            </a>
+          )}
         </div>
 
         {/* Mobile menu */}
         {isMenuOpen && (
           <>
             <div 
-              className="absolute top-full left-0 right-0 bg-white shadow-lg p-4 md:hidden z-50"
+              className={`absolute top-full left-0 right-0 p-4 md:hidden z-50 ${
+                isDarkMode 
+                  ? 'bg-[#171717] shadow-[0_8px_30px_rgb(0,0,0,0.4)]' 
+                  : 'bg-white shadow-lg'
+              }`}
               data-menu-container
             >
-              <div className="flex flex-col space-y-4">
-                <a href="https://discord.com/invite/5ngXY2Wn" className="text-gray-600 hover:text-gray-900">Discord</a>
-                <a href="https://github.com/trycua" className="text-gray-600 hover:text-gray-900">GitHub</a>
-                <a href="https://github.com/orgs/trycua/packages" className="text-gray-600 hover:text-gray-900">Images</a>
+              <div className="flex flex-col space-y-6">
+                <div className="flex flex-col space-y-4">
+                  <a href="https://discord.com/invite/5ngXY2Wn" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Discord</a>
+                  <a href="https://github.com/trycua" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>GitHub</a>
+                  <a href="https://github.com/orgs/trycua/packages" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Images</a>
+                </div>
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
+                <div className="flex flex-col space-y-4">
+                  <button
+                    className={`flex items-center gap-2 py-2 ${
+                      isDarkMode 
+                        ? 'text-gray-300 hover:text-white' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    onClick={toggleTheme}
+                  >
+                    {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
+                    <span>{isDarkMode ? 'Owl mode' : 'Eagle mode'}</span>
+                  </button>
+                  {lumeStars !== null && (
+                    <a 
+                      href="https://github.com/trycua/lume" 
+                      className={`flex items-center gap-2 py-2 ${
+                        isDarkMode 
+                          ? 'text-gray-300 hover:text-white' 
+                        : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Github size={16} />
+                      <Star size={16} className="fill-current" />
+                      <span>{formatStarCount(lumeStars)}</span>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </>
@@ -65,60 +182,125 @@ const Root = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto mt-32 text-center px-4">
-        <div className="flex justify-center mb-8">
-          <img src="/logo.svg" alt="TryCua Logo" className="w-24 h-24" />
-        </div>
-        <h1 className="text-4xl font-bold mb-8">
-          Get started with local sandbox.
-        </h1>
-        <p className="text-gray-600 mb-12">
-          Run secure, isolated environments with near-native performance on Apple Silicon.
-        </p>
-        
-        {/* Product Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mb-8">
-          {/* CUA Card */}
-          <div className="group relative">
-            <div className="bg-white p-8 rounded-xl border border-gray-200 opacity-50 flex flex-col h-full">
-              <div className="absolute top-0 right-0 bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-tr-xl">Early Preview</div>
-              <h3 className="font-bold text-xl mb-3 text-black">Agent</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Computer Use AI Agent (CUA) for multi-apps agentic workflows</p>
+      <div className="overflow-auto">
+        <main className="max-w-4xl mx-auto mt-20 md:mt-40 text-center px-4 pb-24">
+          <div className="flex justify-center mb-8">
+            <img 
+              src={isDarkMode ? "/logo-white.svg" : "/logo-black.svg"} 
+              alt="TryCua Logo" 
+              className="w-24 h-24" 
+            />
+          </div>
+          <h1 className={`text-4xl font-bold mb-8 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+            Get started with local sandbox.
+          </h1>
+          <p className={`mb-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Run secure, isolated environments with near-native performance on Apple Silicon.
+          </p>
+          
+          {/* Product List */}
+          <div className="md:grid md:grid-cols-3 md:gap-8 space-y-6 md:space-y-0 mb-8">
+            {/* Agent Section */}
+            <div className="relative">
+              <div className={`p-6 md:p-8 h-full md:rounded-xl md:border transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out ${
+                isDarkMode 
+                  ? 'md:bg-[#171717] md:border-neutral-800' 
+                  : 'md:bg-white md:border-gray-200'
+              } opacity-50`}>
+                <div className={`text-xs px-2 py-1 inline-block mb-4 md:mb-1 md:absolute md:top-0 md:right-0 md:rounded-tr-xl md:rounded-bl-xl transition-[background-color,color] duration-200 ease-in-out ${
+                  isDarkMode 
+                    ? 'text-gray-400 md:bg-neutral-900' 
+                    : 'text-gray-500 md:bg-gray-100'
+                }`}>Early Preview</div>
+                <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
+                  <div className="w-6 flex-shrink-0">
+                    <Bot className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                  </div>
+                  <h3 className={`font-bold text-xl md:text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>Agent</h3>
+                </div>
+                <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Computer Use AI Agent (CUA) for multi-apps agentic workflows</p>
+              </div>
             </div>
+
+            <div className="md:hidden h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
+
+            {/* Computer Section */}
+            <div className="relative">
+              <div className={`p-6 md:p-8 h-full md:rounded-xl md:border transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out ${
+                isDarkMode 
+                  ? 'md:bg-[#171717] md:border-neutral-800' 
+                  : 'md:bg-white md:border-gray-200'
+              } opacity-50`}>
+                <div className={`text-xs px-2 py-1 inline-block mb-4 md:mb-1 md:absolute md:top-0 md:right-0 md:rounded-tr-xl md:rounded-bl-xl transition-[background-color,color] duration-200 ease-in-out ${
+                  isDarkMode 
+                    ? 'text-gray-400 md:bg-neutral-900' 
+                    : 'text-gray-500 md:bg-gray-100'
+                }`}>Early Preview</div>
+                <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
+                  <div className="w-6 flex-shrink-0">
+                    <Monitor className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                  </div>
+                  <h3 className={`font-bold text-xl md:text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>Computer</h3>
+                </div>
+                <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Computer Use Interface (CUI) framework for interacting with sandboxes</p>
+              </div>
+            </div>
+
+            <div className="md:hidden h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
+
+            {/* Lume Section */}
+            <a href="https://github.com/trycua/lume" className="block group">
+              <div className={`p-6 md:p-8 h-full md:rounded-xl md:border transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out ${
+                isDarkMode 
+                  ? 'md:bg-[#171717] md:border-neutral-800 md:hover:border-white md:hover:shadow-[0_8px_30px_rgb(255,255,255,0.12)]' 
+                  : 'md:bg-white md:border-gray-200 md:hover:border-black md:hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]'
+              }`}>
+                <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
+                  <div className="w-6 flex-shrink-0">
+                    <Server className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                  </div>
+                  <h3 className={`font-bold text-xl md:text-center transition-colors duration-200 ease-in-out ${isDarkMode ? 'text-white md:group-hover:text-gray-200' : 'text-black md:group-hover:text-gray-700'}`}>Lume</h3>
+                </div>
+                <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Virtualization layer to host macOS & Linux, powered by Apple Virtualization.framework</p>
+              </div>
+            </a>
           </div>
 
-          {/* Computer Card */}
-          <div className="group relative">
-            <div className="bg-white p-8 rounded-xl border border-gray-200 opacity-50 flex flex-col h-full">
-              <div className="absolute top-0 right-0 bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-tr-xl">Early Preview</div>
-              <h3 className="font-bold text-xl mb-3 text-black">Computer</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Computer Use Interface (CUI) framework for interacting with sandboxes</p>
-            </div>
+          <div className="mb-8">
+            <a
+              href="https://form.typeform.com/to/EXQ01spJ"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors ${
+                isDarkMode 
+                  ? 'bg-white text-black hover:bg-gray-200' 
+                  : 'bg-black text-white hover:bg-gray-800'
+              }`}
+            >
+              <span>Get early access</span>
+              <Rocket size={20} />
+            </a>
           </div>
 
-          {/* Lume Card */}
-          <a href="https://github.com/trycua/lume" className="group">
-            <div className="bg-white p-8 rounded-xl border border-gray-200 hover:border-black transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col h-full">
-              <h3 className="font-bold text-xl mb-3 text-black group-hover:text-black transition-colors">Lume</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Virtualization layer to host macOS & Linux, powered by Apple Virtualization.framework</p>
-            </div>
-          </a>
-        </div>
-
-        <p className="text-sm text-gray-500 mb-12">
-          Available for macOS on Apple Silicon
-        </p>
-      </main>
+          <p className={`text-sm mb-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Available for macOS on Apple Silicon
+          </p>
+        </main>
+      </div>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 w-full p-4 bg-white border-t">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 space-y-4 md:space-y-0">
-          <div>© 2025 TryCua</div>
+      <footer className={`fixed bottom-0 w-full p-4 border-t transition-colors ${
+        isDarkMode 
+          ? 'bg-[#171717] border-neutral-800' 
+          : 'bg-white border-gray-200'
+      }`}>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-sm space-y-4 md:space-y-0">
+          <div className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>© 2025 TryCua</div>
           <div className="flex flex-wrap justify-center md:justify-end gap-4 md:gap-6">
-            <a href="https://github.com/trycua/lume/blob/main/docs/FAQ.md" className="hover:text-gray-900">Docs</a>
-            <a href="https://github.com/trycua" className="hover:text-gray-900">GitHub</a>
-            <a href="https://discord.com/invite/5ngXY2Wn" className="hover:text-gray-900">Discord</a>
-            <a href="https://twitter.com/trycua" className="hover:text-gray-900">X (Twitter)</a>
+            <a href="https://github.com/trycua/lume/blob/main/docs/FAQ.md" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>Docs</a>
+            <a href="https://github.com/trycua" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>GitHub</a>
+            <a href="https://discord.com/invite/5ngXY2Wn" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>Discord</a>
+            <a href="https://twitter.com/trycua" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>X (Twitter)</a>
           </div>
         </div>
       </footer>
