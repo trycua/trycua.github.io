@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server, ArrowRight, ClipboardList } from 'lucide-react';
 
-const formatStarCount = (count: number): string => {
+const formatStarCount = (count: number | null): string => {
+  if (count === null) return '0';
   if (count >= 1000) {
     // Round to nearest 100 before formatting
     const roundedCount = Math.round(count / 100) * 100;
@@ -59,11 +60,38 @@ const Root = () => {
   useEffect(() => {
     const fetchStars = async () => {
       try {
-        const response = await fetch('https://api.github.com/repos/trycua/lume');
+        console.log('Fetching GitHub stars...');
+        const response = await fetch('https://api.github.com/repos/trycua/lume', {
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            // Using environment variable for the token
+            ...(process.env.NEXT_PUBLIC_GITHUB_TOKEN && {
+              'Authorization': `token ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`
+            })
+          }
+        });
+        if (!response.ok) {
+          console.error('GitHub API error:', {
+            status: response.status,
+            statusText: response.statusText,
+            rateLimitRemaining: response.headers.get('x-ratelimit-remaining'),
+            rateLimitReset: response.headers.get('x-ratelimit-reset')
+          });
+          return;
+        }
         const data = await response.json();
+        console.log('GitHub API response:', data);
+        if (!data || typeof data.stargazers_count !== 'number') {
+          console.error('Invalid GitHub API response:', data);
+          return;
+        }
         setLumeStars(data.stargazers_count);
-      } catch (error) {
-        console.error('Error fetching GitHub stars:', error);
+      } catch (error: any) {
+        console.error('Error fetching GitHub stars:', {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack
+        });
       }
     };
     fetchStars();
@@ -147,7 +175,7 @@ const Root = () => {
           {/* Theme Switch */}
           <button
             key={`theme-switch-${isDarkMode}`}
-            className={`hidden md:flex items-center gap-2 fixed right-36 top-4 py-1 px-3 rounded-full border transform-gpu ${
+            className={`hidden md:flex items-center gap-2 fixed right-28 top-4 h-8 py-0 px-3 rounded-full border transform-gpu ${
               isDarkMode 
                 ? 'text-gray-300 hover:text-white bg-[#171717] border-neutral-800 hover:border-neutral-700' 
                 : 'text-gray-600 hover:text-gray-900 bg-white border-gray-200 hover:border-gray-300'
@@ -158,22 +186,19 @@ const Root = () => {
             <span>{isDarkMode ? 'Owl mode' : 'Eagle mode'}</span>
           </button>
 
-          {/* GitHub Stars Counter */}
-          {lumeStars !== null && (
-            <a 
-              key={`github-stars-${isDarkMode}`}
-              href="https://github.com/trycua/lume" 
-              className={`hidden md:flex items-center gap-2 fixed right-8 top-4 py-1 px-3 rounded-full border transform-gpu ${
-                isDarkMode 
-                  ? 'text-gray-300 hover:text-white bg-[#171717] border-neutral-800 hover:border-neutral-700' 
-                  : 'text-gray-600 hover:text-gray-900 bg-white border-gray-200 hover:border-gray-300'
-              } transition-[background-color,border-color,color] duration-200 ease-in-out`}
-            >
-              <Github size={16} />
-              <Star size={16} className="fill-current" />
-              <span>{formatStarCount(lumeStars)}</span>
-            </a>
-          )}
+          {/* GitHub Link */}
+          <a 
+            key={`github-${isDarkMode}`}
+            href="https://github.com/trycua/lume" 
+            className={`hidden md:flex items-center gap-2 fixed right-8 top-4 h-8 py-0 px-3 rounded-full border transform-gpu ${
+              isDarkMode 
+                ? 'text-gray-300 hover:text-white bg-[#171717] border-neutral-800 hover:border-neutral-700' 
+                : 'text-gray-600 hover:text-gray-900 bg-white border-gray-200 hover:border-gray-300'
+            } transition-[background-color,border-color,color] duration-200 ease-in-out`}
+          >
+            <Github size={16} />
+            <Star size={16} className="fill-current" />
+          </a>
         </div>
 
         {/* Mobile menu */}
@@ -206,20 +231,18 @@ const Root = () => {
                     {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
                     <span>{isDarkMode ? 'Owl mode' : 'Eagle mode'}</span>
                   </button>
-                  {lumeStars !== null && (
-                    <a 
-                      href="https://github.com/trycua/lume" 
-                      className={`flex items-center gap-2 py-2 ${
-                        isDarkMode 
-                          ? 'text-gray-300 hover:text-white' 
+                  {/* GitHub Link in Mobile Menu */}
+                  <a 
+                    href="https://github.com/trycua/lume" 
+                    className={`flex items-center gap-2 py-2 ${
+                      isDarkMode 
+                        ? 'text-gray-300 hover:text-white' 
                         : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      <Github size={16} />
-                      <Star size={16} className="fill-current" />
-                      <span>{formatStarCount(lumeStars)}</span>
-                    </a>
-                  )}
+                    }`}
+                  >
+                    <Github size={16} />
+                    <Star size={16} className="fill-current" />
+                  </a>
                 </div>
               </div>
             </div>
