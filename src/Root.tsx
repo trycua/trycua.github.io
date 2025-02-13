@@ -46,8 +46,12 @@ const Root = () => {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      document.documentElement.style.backgroundColor = '#171717';
+      document.body.style.backgroundColor = '#171717';
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.style.backgroundColor = 'white';
+      document.body.style.backgroundColor = 'white';
     }
   }, [isDarkMode]);
 
@@ -225,7 +229,7 @@ const Root = () => {
 
       {/* Main Content */}
       <div className="overflow-auto">
-        <main className="max-w-4xl mx-auto mt-20 md:mt-40 text-center px-4 pb-24">
+        <main className="max-w-4xl mx-auto mt-20 md:mt-32 text-center px-4 pb-40 md:pb-16">
           <div className="flex justify-center mb-4 md:mb-8">
             <img 
               src={isDarkMode ? "/logo-white.svg" : "/logo-black.svg"} 
@@ -241,7 +245,7 @@ const Root = () => {
           </p>
           
           {/* Product List */}
-          <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 mb-6 md:mb-8 mt-6 md:mt-12">
+          <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 mb-20 md:mb-8 mt-6 md:mt-8">
             <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-none md:contents">
               {/* Lume Section */}
               <a href="https://github.com/trycua/lume" className="block group relative">
@@ -306,11 +310,13 @@ const Root = () => {
             </div>
           </div>
 
-          <div className="h-[72px] md:h-auto mb-4 md:mb-6">
-            <div className={`fixed md:static bottom-[unset] top-[75vh] left-0 right-0 p-4 md:p-0 ${
-              isScrolled && isInitialized ? 'opacity-100 visible' : 'opacity-0 invisible'
-            } transition-[opacity,visibility] duration-200 ease-in-out md:opacity-100 md:visible pointer-events-none md:pointer-events-auto text-center`}>
-              <div className="bg-gradient-to-t from-white/95 via-white/95 to-transparent dark:from-[#171717]/95 dark:via-[#171717]/95 dark:to-transparent absolute inset-0 -z-10 md:hidden" />
+          <div className="h-0 md:h-[72px] md:h-auto">
+            <div className={`fixed md:static bottom-24 left-0 right-0 py-6 px-4 md:p-0 ${
+              isScrolled && isInitialized ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            } transform-gpu transition-all duration-300 ease-out md:transform-none md:opacity-100 pointer-events-auto text-center flex flex-col items-center gap-3`}>
+              <p className={`text-sm md:hidden ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Available for macOS on Apple Silicon (M1+)
+              </p>
               <a
                 href="https://form.typeform.com/to/EXQ01spJ"
                 target="_blank"
@@ -321,13 +327,13 @@ const Root = () => {
                     : 'bg-black text-white hover:bg-gray-800'
                 }`}
               >
-                <span>Register Your Interest</span>
+                <span>Get Waitlisted</span>
                 <ClipboardList size={20} />
               </a>
             </div>
           </div>
 
-          <p className={`text-sm mb-8 md:mb-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <p className={`text-sm mt-6 mb-24 hidden md:block -mt-1 md:mb-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             Available for macOS on Apple Silicon (M1+)
           </p>
 
