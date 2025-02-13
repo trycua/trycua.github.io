@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server } from 'lucide-react';
+import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server, ArrowRight, ClipboardList } from 'lucide-react';
 
 const formatStarCount = (count: number): string => {
   if (count >= 1000) {
-    // Round down to nearest 100 before formatting
-    const roundedCount = Math.floor(count / 100) * 100;
+    // Round to nearest 100 before formatting
+    const roundedCount = Math.round(count / 100) * 100;
     return `${(roundedCount / 1000).toFixed(1).replace(/\.0$/, '')}k`;
   }
   return count.toString();
 };
 
+// Debounce helper outside component to prevent recreation
+const debounce = (fn: Function, ms = 100) => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return function (this: any, ...args: any[]) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), ms);
+  };
+};
+
 const Root = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [lumeStars, setLumeStars] = useState<number | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check localStorage on initial render
     const savedTheme = localStorage.getItem('theme');
@@ -38,7 +49,7 @@ const Root = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, []);
+  }, [isDarkMode]);
 
   // Fetch GitHub stars
   useEffect(() => {
@@ -66,6 +77,35 @@ const Root = () => {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, [isMenuOpen]);
+
+  // Add scroll detection
+  useEffect(() => {
+    const checkScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const hasScrollableContent = scrollHeight > clientHeight + 10; // Reduced from 20 to 10
+      const hasScrolled = scrollTop > 5; // Reduced from 20 to 5
+      
+      setIsScrolled(hasScrollableContent && hasScrolled);
+    };
+
+    // Add a small delay before initializing to prevent initial flicker
+    const initTimeout = setTimeout(() => {
+      setIsInitialized(true);
+      checkScroll();
+    }, 100);
+
+    const debouncedScroll = debounce(checkScroll, 50);
+    const debouncedResize = debounce(checkScroll, 100);
+
+    window.addEventListener('scroll', debouncedScroll);
+    window.addEventListener('resize', debouncedResize);
+
+    return () => {
+      clearTimeout(initTimeout);
+      window.removeEventListener('scroll', debouncedScroll);
+      window.removeEventListener('resize', debouncedResize);
+    };
+  }, []);
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#171717]' : 'bg-white'} transition-[background-color,border-color] duration-200 ease-in-out`}>
@@ -102,11 +142,12 @@ const Root = () => {
 
           {/* Theme Switch */}
           <button
-            className={`hidden md:flex items-center gap-2 fixed right-36 top-4 py-1 px-3 rounded-full border transition-colors ${
+            key={`theme-switch-${isDarkMode}`}
+            className={`hidden md:flex items-center gap-2 fixed right-36 top-4 py-1 px-3 rounded-full border transform-gpu ${
               isDarkMode 
-                ? 'text-gray-300 hover:text-white bg-[#171717]/80 backdrop-blur-sm border-neutral-800 hover:border-neutral-700' 
-                : 'text-gray-600 hover:text-gray-900 bg-white/80 backdrop-blur-sm border-gray-200 hover:border-gray-300'
-            }`}
+                ? 'text-gray-300 hover:text-white bg-[#171717] border-neutral-800 hover:border-neutral-700' 
+                : 'text-gray-600 hover:text-gray-900 bg-white border-gray-200 hover:border-gray-300'
+            } transition-[background-color,border-color,color] duration-200 ease-in-out`}
             onClick={toggleTheme}
           >
             {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
@@ -116,12 +157,13 @@ const Root = () => {
           {/* GitHub Stars Counter */}
           {lumeStars !== null && (
             <a 
+              key={`github-stars-${isDarkMode}`}
               href="https://github.com/trycua/lume" 
-              className={`hidden md:flex items-center gap-2 fixed right-8 top-4 py-1 px-3 rounded-full border transition-colors ${
+              className={`hidden md:flex items-center gap-2 fixed right-8 top-4 py-1 px-3 rounded-full border transform-gpu ${
                 isDarkMode 
-                  ? 'text-gray-300 hover:text-white bg-[#171717]/80 backdrop-blur-sm border-neutral-800 hover:border-neutral-700' 
-                  : 'text-gray-600 hover:text-gray-900 bg-white/80 backdrop-blur-sm border-gray-200 hover:border-gray-300'
-              }`}
+                  ? 'text-gray-300 hover:text-white bg-[#171717] border-neutral-800 hover:border-neutral-700' 
+                  : 'text-gray-600 hover:text-gray-900 bg-white border-gray-200 hover:border-gray-300'
+              } transition-[background-color,border-color,color] duration-200 ease-in-out`}
             >
               <Github size={16} />
               <Star size={16} className="fill-current" />
@@ -184,107 +226,111 @@ const Root = () => {
       {/* Main Content */}
       <div className="overflow-auto">
         <main className="max-w-4xl mx-auto mt-20 md:mt-40 text-center px-4 pb-24">
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-4 md:mb-8">
             <img 
               src={isDarkMode ? "/logo-white.svg" : "/logo-black.svg"} 
               alt="TryCua Logo" 
               className="w-24 h-24" 
             />
           </div>
-          <h1 className={`text-4xl font-bold mb-8 ${isDarkMode ? 'text-white' : 'text-black'}`}>
+          <h1 className={`text-4xl font-bold mb-4 md:mb-8 ${isDarkMode ? 'text-white' : 'text-black'}`}>
             Get started with local sandbox.
           </h1>
-          <p className={`mb-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`mb-6 md:mb-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Run secure, isolated environments with near-native performance on Apple Silicon.
           </p>
           
           {/* Product List */}
-          <div className="md:grid md:grid-cols-3 md:gap-8 space-y-6 md:space-y-0 mb-8">
-            {/* Agent Section */}
-            <div className="relative">
-              <div className={`p-6 md:p-8 h-full md:rounded-xl md:border transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out ${
-                isDarkMode 
-                  ? 'md:bg-[#171717] md:border-neutral-800' 
-                  : 'md:bg-white md:border-gray-200'
-              } opacity-50`}>
-                <div className={`text-xs px-2 py-1 inline-block mb-4 md:mb-1 md:absolute md:top-0 md:right-0 md:rounded-tr-xl md:rounded-bl-xl transition-[background-color,color] duration-200 ease-in-out ${
+          <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 mb-6 md:mb-8 mt-6 md:mt-12">
+            <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-none md:contents">
+              {/* Lume Section */}
+              <a href="https://github.com/trycua/lume" className="block group relative">
+                <div className={`p-6 md:p-8 h-full transition-all duration-200 ease-in-out hover:bg-black/[0.02] dark:hover:bg-white/[0.02] active:scale-[0.98] ${
                   isDarkMode 
-                    ? 'text-gray-400 md:bg-neutral-900' 
-                    : 'text-gray-500 md:bg-gray-100'
-                }`}>Early Preview</div>
-                <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
-                  <div className="w-6 flex-shrink-0">
-                    <Bot className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                    ? 'md:bg-[#171717] md:border-neutral-800 md:hover:border-white md:hover:shadow-[0_8px_30px_rgb(255,255,255,0.12)]' 
+                    : 'md:bg-white md:border-gray-200 md:hover:border-black md:hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]'
+                } md:rounded-xl md:border md:hover:bg-transparent dark:md:hover:bg-transparent md:active:scale-100`}>
+                  <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
+                    <div className="w-6 flex-shrink-0">
+                      <Server className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                    </div>
+                    <h3 className={`font-bold text-xl md:text-center transition-colors duration-200 ease-in-out ${isDarkMode ? 'text-white md:group-hover:text-gray-200' : 'text-black md:group-hover:text-gray-700'}`}>Lume</h3>
                   </div>
-                  <h3 className={`font-bold text-xl md:text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>Agent</h3>
+                  <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Virtualization layer to run macOS & Linux sandboxes (VMs / VMs on Docker), powered by Apple Virtualization.framework</p>
                 </div>
-                <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Computer Use AI Agent (CUA) for multi-apps agentic workflows</p>
+              </a>
+
+              {/* Computer Section */}
+              <div className="relative border-t border-gray-100 dark:border-neutral-800 md:border-t-0">
+                <div className={`p-6 md:p-8 h-full transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out opacity-50 pointer-events-none ${
+                  isDarkMode 
+                    ? 'md:bg-[#171717] md:border-neutral-800' 
+                    : 'md:bg-white md:border-gray-200'
+                } md:rounded-xl md:border`}>
+                  <div className={`text-xs px-2 py-1 inline-block mb-4 md:mb-1 md:absolute md:top-0 md:right-0 md:rounded-tr-xl md:rounded-bl-xl transition-[background-color,color] duration-200 ease-in-out ${
+                    isDarkMode 
+                      ? 'text-gray-400 md:bg-neutral-900' 
+                      : 'text-gray-500 md:bg-gray-100'
+                  }`}>Early Preview</div>
+                  <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
+                    <div className="w-6 flex-shrink-0">
+                      <Monitor className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                    </div>
+                    <h3 className={`font-bold text-xl md:text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>Computer</h3>
+                  </div>
+                  <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>A Computer Use Interface (CUI) framework for interacting with sandboxes, PyAutoGUI-compatible, and pluggable with any AI agent.</p>
+                </div>
+              </div>
+
+              {/* Agent Section */}
+              <div className="relative border-t border-gray-100 dark:border-neutral-800 md:border-t-0">
+                <div className={`p-6 md:p-8 h-full transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out opacity-50 pointer-events-none ${
+                  isDarkMode 
+                    ? 'md:bg-[#171717] md:border-neutral-800' 
+                    : 'md:bg-white md:border-gray-200'
+                } md:rounded-xl md:border`}>
+                  <div className={`text-xs px-2 py-1 inline-block mb-4 md:mb-1 md:absolute md:top-0 md:right-0 md:rounded-tr-xl md:rounded-bl-xl transition-[background-color,color] duration-200 ease-in-out ${
+                    isDarkMode 
+                      ? 'text-gray-400 md:bg-neutral-900' 
+                      : 'text-gray-500 md:bg-gray-100'
+                  }`}>Early Preview</div>
+                  <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
+                    <div className="w-6 flex-shrink-0">
+                      <Bot className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                    </div>
+                    <h3 className={`font-bold text-xl md:text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>Agent</h3>
+                  </div>
+                  <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>A state-of-the-art Computer Use AI Agent (CUA) for multi-app workflows on macOS/Linux, supporting local (Ollama) and cloud models.</p>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="md:hidden h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
-
-            {/* Computer Section */}
-            <div className="relative">
-              <div className={`p-6 md:p-8 h-full md:rounded-xl md:border transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out ${
-                isDarkMode 
-                  ? 'md:bg-[#171717] md:border-neutral-800' 
-                  : 'md:bg-white md:border-gray-200'
-              } opacity-50`}>
-                <div className={`text-xs px-2 py-1 inline-block mb-4 md:mb-1 md:absolute md:top-0 md:right-0 md:rounded-tr-xl md:rounded-bl-xl transition-[background-color,color] duration-200 ease-in-out ${
+          <div className="h-[72px] md:h-auto mb-4 md:mb-6">
+            <div className={`fixed md:static bottom-[unset] top-[75vh] left-0 right-0 p-4 md:p-0 ${
+              isScrolled && isInitialized ? 'opacity-100 visible' : 'opacity-0 invisible'
+            } transition-[opacity,visibility] duration-200 ease-in-out md:opacity-100 md:visible pointer-events-none md:pointer-events-auto text-center`}>
+              <div className="bg-gradient-to-t from-white/95 via-white/95 to-transparent dark:from-[#171717]/95 dark:via-[#171717]/95 dark:to-transparent absolute inset-0 -z-10 md:hidden" />
+              <a
+                href="https://form.typeform.com/to/EXQ01spJ"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors pointer-events-auto ${
                   isDarkMode 
-                    ? 'text-gray-400 md:bg-neutral-900' 
-                    : 'text-gray-500 md:bg-gray-100'
-                }`}>Early Preview</div>
-                <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
-                  <div className="w-6 flex-shrink-0">
-                    <Monitor className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                  </div>
-                  <h3 className={`font-bold text-xl md:text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>Computer</h3>
-                </div>
-                <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Computer Use Interface (CUI) framework for interacting with sandboxes</p>
-              </div>
+                    ? 'bg-white text-black hover:bg-gray-200' 
+                    : 'bg-black text-white hover:bg-gray-800'
+                }`}
+              >
+                <span>Register Your Interest</span>
+                <ClipboardList size={20} />
+              </a>
             </div>
-
-            <div className="md:hidden h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
-
-            {/* Lume Section */}
-            <a href="https://github.com/trycua/lume" className="block group">
-              <div className={`p-6 md:p-8 h-full md:rounded-xl md:border transition-[background-color,border-color,opacity,box-shadow] duration-200 ease-in-out ${
-                isDarkMode 
-                  ? 'md:bg-[#171717] md:border-neutral-800 md:hover:border-white md:hover:shadow-[0_8px_30px_rgb(255,255,255,0.12)]' 
-                  : 'md:bg-white md:border-gray-200 md:hover:border-black md:hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]'
-              }`}>
-                <div className="flex items-center gap-3 justify-center md:flex-col md:gap-4">
-                  <div className="w-6 flex-shrink-0">
-                    <Server className={`w-full h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                  </div>
-                  <h3 className={`font-bold text-xl md:text-center transition-colors duration-200 ease-in-out ${isDarkMode ? 'text-white md:group-hover:text-gray-200' : 'text-black md:group-hover:text-gray-700'}`}>Lume</h3>
-                </div>
-                <p className={`text-sm leading-relaxed mt-2 px-2 md:px-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Virtualization layer to host macOS & Linux, powered by Apple Virtualization.framework</p>
-              </div>
-            </a>
           </div>
 
-          <div className="mb-8">
-            <a
-              href="https://form.typeform.com/to/EXQ01spJ"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors ${
-                isDarkMode 
-                  ? 'bg-white text-black hover:bg-gray-200' 
-                  : 'bg-black text-white hover:bg-gray-800'
-              }`}
-            >
-              <span>Get early access</span>
-              <Rocket size={20} />
-            </a>
-          </div>
-
-          <p className={`text-sm mb-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Available for macOS on Apple Silicon
+          <p className={`text-sm mb-8 md:mb-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Available for macOS on Apple Silicon (M1+)
           </p>
+
         </main>
       </div>
 
