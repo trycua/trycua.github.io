@@ -341,7 +341,7 @@ const Root = () => {
                 Available for macOS on Apple Silicon (M1+)
               </p>
               <a
-                href="https://form.typeform.com/to/itWoswW8"
+                href="https://form.typeform.com/to/EXQ01spJ"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors pointer-events-auto ${
