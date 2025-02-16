@@ -155,7 +155,7 @@ const Root = () => {
             </a>
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4 ml-4">
-              <a href="https://discord.com/invite/5ngXY2Wn" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Discord</a>
+              <a href="https://discord.com/invite/mVnXXpdE85" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Discord</a>
               <a href="https://github.com/trycua" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>GitHub</a>
               <a href="https://github.com/orgs/trycua/packages" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Images</a>
             </div>
@@ -215,7 +215,7 @@ const Root = () => {
             >
               <div className="flex flex-col space-y-6">
                 <div className="flex flex-col space-y-4">
-                  <a href="https://discord.com/invite/5ngXY2Wn" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Discord</a>
+                  <a href="https://discord.com/invite/mVnXXpdE85" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Discord</a>
                   <a href="https://github.com/trycua" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>GitHub</a>
                   <a href="https://github.com/orgs/trycua/packages" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>Images</a>
                 </div>
@@ -415,7 +415,7 @@ const Root = () => {
           <div className="flex flex-wrap justify-center md:justify-end gap-4 md:gap-6">
             <a href="https://github.com/trycua/lume/blob/main/docs/FAQ.md" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>Docs</a>
             <a href="https://github.com/trycua" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>GitHub</a>
-            <a href="https://discord.com/invite/5ngXY2Wn" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>Discord</a>
+            <a href="https://discord.com/invite/mVnXXpdE85" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>Discord</a>
             <a href="https://twitter.com/trycua" className={`${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}>X (Twitter)</a>
           </div>
         </div>
