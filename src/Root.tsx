@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server, ArrowRight, ClipboardList } from 'lucide-react';
+import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server, ArrowRight, ClipboardList, Play } from 'lucide-react';
 
 const formatStarCount = (count: number | null): string => {
   if (count === null) return '0';
@@ -25,6 +25,7 @@ const Root = () => {
   const [lumeStars, setLumeStars] = useState<number | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check localStorage on initial render
     const savedTheme = localStorage.getItem('theme');
@@ -340,19 +341,32 @@ const Root = () => {
               <p className={`text-sm md:hidden ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Available for macOS on Apple Silicon (M1+)
               </p>
-              <a
-                href="https://form.typeform.com/to/EXQ01spJ"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors pointer-events-auto ${
-                  isDarkMode 
-                    ? 'bg-white text-black hover:bg-gray-200' 
-                    : 'bg-black text-white hover:bg-gray-800'
-                }`}
-              >
-                <span>Get Waitlisted</span>
-                <ClipboardList size={20} />
-              </a>
+              <div className="flex items-center gap-4">
+                <a
+                  href="https://form.typeform.com/to/EXQ01spJ"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors pointer-events-auto ${
+                    isDarkMode 
+                      ? 'bg-white text-black hover:bg-gray-200' 
+                      : 'bg-black text-white hover:bg-gray-800'
+                  }`}
+                >
+                  <span>Get Waitlisted</span>
+                  <ClipboardList size={20} />
+                </a>
+                <button
+                  onClick={() => setShowVideo(true)}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full transition-colors pointer-events-auto border ${
+                    isDarkMode 
+                      ? 'border-neutral-800 hover:border-neutral-700 text-gray-300 hover:text-white' 
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span>Watch Demo</span>
+                  <Play size={20} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -362,6 +376,35 @@ const Root = () => {
 
         </main>
       </div>
+
+      {/* Video Modal */}
+      {showVideo && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowVideo(false)}
+        >
+          <div 
+            className="relative w-full max-w-4xl aspect-video rounded-xl overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowVideo(false)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <iframe
+              src="https://www.youtube.com/embed/6s03XFl0SnQ?si=k9u6CSR2Gm7daKrW&controls=0&autoplay=1"
+              title="YouTube video player"
+              className="absolute top-0 left-0 w-full h-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className={`fixed bottom-0 w-full p-4 border-t transition-colors ${
