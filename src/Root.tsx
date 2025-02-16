@@ -393,15 +393,13 @@ const Root = () => {
             >
               <X size={20} />
             </button>
-            <iframe
-              src="https://www.youtube.com/embed/6s03XFl0SnQ?si=k9u6CSR2Gm7daKrW&controls=0&autoplay=1"
-              title="YouTube video player"
-              className="absolute top-0 left-0 w-full h-full"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            ></iframe>
+            <video
+              className="w-full h-full"
+              autoPlay
+              controls
+              playsInline
+              src="/demo_cua.mp4"
+            />
           </div>
         </div>
       )}
