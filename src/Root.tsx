@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server, ArrowRight, ClipboardList, Play } from 'lucide-react';
+import { Github, Menu, X, Star, Rocket, Sun, Moon, Bot, Monitor, Server, ArrowRight, ClipboardList, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const formatStarCount = (count: number | null): string => {
   if (count === null) return '0';
@@ -26,11 +26,17 @@ const Root = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check localStorage on initial render
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
   });
+
+  const videos = [
+    { src: "/demo_notebook.mp4", title: "Notebook Demo" },
+    { src: "/demo_gradio.mp4", title: "Gradio Demo" }
+  ];
 
   // Toggle theme
   const toggleTheme = () => {
@@ -387,18 +393,47 @@ const Root = () => {
             className="relative w-full max-w-4xl aspect-video rounded-xl overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
+            {/* Close button */}
             <button
               onClick={() => setShowVideo(false)}
               className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
             >
               <X size={20} />
             </button>
+
+            {/* Video title */}
+            <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-lg bg-black/50 text-white">
+              {videos[currentVideoIndex].title}
+            </div>
+
+            {/* Navigation arrows */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentVideoIndex((prev) => (prev > 0 ? prev - 1 : videos.length - 1));
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentVideoIndex((prev) => (prev < videos.length - 1 ? prev + 1 : 0));
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            >
+              <ChevronRight size={24} />
+            </button>
+
+            {/* Video */}
             <video
+              key={videos[currentVideoIndex].src} // Add key to force video reload when source changes
               className="w-full h-full"
               autoPlay
               controls
               playsInline
-              src="/demo_cua.mp4"
+              src={videos[currentVideoIndex].src}
             />
           </div>
         </div>
